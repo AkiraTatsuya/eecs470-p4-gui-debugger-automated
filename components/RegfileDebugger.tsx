@@ -102,29 +102,73 @@ const RegfileDebugger: React.FC<RegfileDebuggerProps> = ({
   className,
   signalRegfile,
 }) => {
-  const registers = extractSignalValue(signalRegfile, "registers").value;
-  const REG_registers = parseRegfile(registers);
+  // Helper to safely navigate nested structure
+  const getNestedSignalValue = (obj: any, path: string[]): string | null => {
+    let current = obj;
+    for (const segment of path) {
+      if (current?.children && current.children[segment]) {
+        current = current.children[segment];
+      } else {
+        return null;
+      }
+    }
+    return current?.value || null;
+  };
 
+  // Try to get memData from regfile_mem submodule
+  let registers = getNestedSignalValue(signalRegfile, ['regfile_mem', 'memData']);
+  
+  // Fallback: try the old path in case VCD structure varies
+  if (!registers) {
+    registers = getNestedSignalValue(signalRegfile, ['registers']);
+  }
+  
+  // If still no registers found, show error state
+  if (!registers) {
+    console.error("Could not find register data in:", signalRegfile);
+    return (
+      <Module className={className}>
+        <ModuleHeader label="Physical Registers" />
+        <ModuleContent>
+          <div className="text-red-500">
+            Register data not available. Looking for regfile_mem.memData
+          </div>
+        </ModuleContent>
+      </Module>
+    );
+  }
+
+  const REG_registers = parseRegfile(registers);
   const chunkSize = 16;
   const regChunks = chunkArray(REG_registers, chunkSize);
 
-  // ports
-  const read_idx = extractSignalValue(signalRegfile, "read_idx").value;
-  const write_idx = extractSignalValue(signalRegfile, "write_idx").value;
+  // Get port signals - these should be direct children of prf
+  const read_idx_1 = getNestedSignalValue(signalRegfile, ['read_idx_1']);
+  const read_idx_2 = getNestedSignalValue(signalRegfile, ['read_idx_2']);
+  const write_idx = getNestedSignalValue(signalRegfile, ['write_idx']);
+  
+  const read_out_1 = getNestedSignalValue(signalRegfile, ['read_out_1']);
+  const read_out_2 = getNestedSignalValue(signalRegfile, ['read_out_2']);
+  const write_data = getNestedSignalValue(signalRegfile, ['write_data']);
+  const write_en = getNestedSignalValue(signalRegfile, ['write_en']);
 
-  const read_out = extractSignalValue(signalRegfile, "read_out").value;
-  const write_data = extractSignalValue(signalRegfile, "write_data").value;
-  const write_en = extractSignalValue(signalRegfile, "write_en").value;
-
-  const Reg_read_idx = parseRegPortIdx(read_idx);
-  const Reg_write_idx = parseRegPortIdx(write_idx);
-  const Reg_write_en = parseRegPortValid(write_en);
-
-  const Ref_read_out = parseRegPortData(read_out);
-  const Ref_write_data = parseRegPortData(write_data);
+  // Combine the two read ports into arrays
+  const Reg_read_idx = [
+    read_idx_1 ? parseInt(read_idx_1, 2) : 0,
+    read_idx_2 ? parseInt(read_idx_2, 2) : 0
+  ];
+  
+  const Reg_write_idx = write_idx ? [parseInt(write_idx, 2)] : [0];
+  const Reg_write_en = write_en ? [parseInt(write_en, 2) > 0] : [false];
+  
+  const Ref_read_out = [
+    read_out_1 ? parseInt(read_out_1, 2) : 0,
+    read_out_2 ? parseInt(read_out_2, 2) : 0
+  ];
+  
+  const Ref_write_data = write_data ? [parseInt(write_data, 2)] : [0];
 
   // calculate which ports are used by which FUs
-
   const FU_ReadPorts: FU_Port[] = [
     ...Array.from({ length: Constants.get("NUM_FU_ALU") * 2 }, (_, i) => ({
       fu_type: Types.FU_TYPE.ALU,

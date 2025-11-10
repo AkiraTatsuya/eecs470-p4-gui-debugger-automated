@@ -189,7 +189,7 @@ export default function Debugger() {
   const testbench = signalData?.signals.children.testbench;
 
   const verilogCycle = parseInt(
-    testbench?.children.cycle_count.value.slice(1),
+    testbench?.children.clock_count.value.slice(1),
     2
   );
 

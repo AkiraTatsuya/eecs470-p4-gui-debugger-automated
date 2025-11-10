@@ -100,7 +100,39 @@ def get_signals(cycle_number, edge):
         if not parsed_data:
             return jsonify({"error": "No parsed data available (not in cache)"}), 400
         
-        # return a test response with a json object
+        # Debug: Flatten the hierarchical structure to see all signals
+        def flatten_signals(node, prefix=""):
+            flat = {}
+            if "children" in node:
+                for child_name, child_node in node["children"].items():
+                    child_prefix = f"{prefix}.{child_name}" if prefix else child_name
+                    flat.update(flatten_signals(child_node, child_prefix))
+            elif "value" in node:
+                flat[prefix] = node["value"]
+            return flat
+        
+        flattened = flatten_signals(parsed_data)
+        
+        print(f"\n=== Cycle {cycle_number} ({edge} edge) ===")
+        print(f"Total signals: {len(flattened)}")
+        
+        # Look for hierarchical signals
+        for signal_name, signal_value in flattened.items():
+            if 'verisimpleV' in signal_name or 'prf' in signal_name:
+                print(f"Found: {signal_name} = {signal_value}")
+        
+        # Check if cycle_count is there (the problematic integer signal)
+        for signal_name, signal_value in flattened.items():
+            if 'cycle_count' in signal_name.lower():
+                print(f"cycle_count found: {signal_name} = {signal_value}")
+        
+        print("\nFirst 10 signals:")
+        for i, (name, value) in enumerate(flattened.items()):
+            if i >= 10:
+                break
+            print(f"  {name} = {value}")
+        
+        # Return the hierarchical structure as normal
         return jsonify({
             "endpoint": "/api/parse/", 
             "cycle_number": cycle_number,
@@ -110,4 +142,7 @@ def get_signals(cycle_number, edge):
     
     except Exception as e:
         logging.error(f"Error getting signals: {str(e)}")
+        print(f"Exception in get_signals: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
