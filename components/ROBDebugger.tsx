@@ -18,30 +18,26 @@ type ROBDebuggerProps = {
 };
 
 const ROBDebugger: React.FC<ROBDebuggerProps> = ({ className, signalData }) => {
-  // input signals
-  const dispatched_ins = extractSignalValue(signalData, "dispatched_ins").value;
-  const ROB_dispatched_ins = parseROBData(dispatched_ins);
-  const cdb = extractSignalValue(signalData, "rob_completed").value;
-  const ROB_cdb = parseCDBTags(cdb);
+  const write_data = extractSignalValue(signalData, "write_data")?.value || "";
+  const ROB_dispatched_ins = parseROBData(write_data);
+  
+  const complete_inst = extractSignalValue(signalData, "complete_inst")?.value || "";
+  const ROB_cdb = parseCDBTags(complete_inst);
 
-  // internal signals
+  // internal signals - updated to match your VCD signal names
   const reset = extractSignalValueToInt(signalData, "reset");
-  const head = extractSignalValueToInt(signalData, "head");
-  const tail = extractSignalValueToInt(signalData, "tail");
-  const available_spots = extractSignalValueToInt(
-    signalData,
-    "available_spots"
-  );
+  const head = extractSignalValueToInt(signalData, "dbg_head");
+  const tail = extractSignalValueToInt(signalData, "dbg_tail");
+  const available_spots = extractSignalValueToInt(signalData, "spots");
+  
   // pure internal signals
-  // const head_growth = extractSignalValueToInt(signalData, "head_growth");
-  // const tail_growth = extractSignalValueToInt(signalData, "tail_growth");
-  const next_direction = extractSignalValueToInt(signalData, "next_direction");
-  const last_direction = extractSignalValueToInt(signalData, "last_direction");
-  const empty = extractSignalValueToInt(signalData, "empty");
-  const retireable_cnt = extractSignalValueToInt(signalData, "retireable_cnt");
+  const head_n = extractSignalValueToInt(signalData, "head_n");
+  const tail_n = extractSignalValueToInt(signalData, "tail_n");
+  const full = extractSignalValueToInt(signalData, "full");
+  const retire = extractSignalValueToInt(signalData, "retire");
 
-  // entries
-  const entries = extractSignalValue(signalData, "entries").value;
+  // entries - updated to match your VCD signal names
+  const entries = extractSignalValue(signalData, "dbg_buf")?.value || "";
   const ROB_entries = parseROBData(entries);
 
   // State to control visibility of stuff
@@ -87,20 +83,20 @@ const ROBDebugger: React.FC<ROBDebuggerProps> = ({ className, signalData }) => {
           {showROBInternals && (
             <Card className="flex space-x-4">
               <div>
-                <SimpleValDisplay label="Retireable Count: ">
-                  {retireable_cnt}
+                <SimpleValDisplay label="Retire Count: ">
+                  {retire}
                 </SimpleValDisplay>
               </div>
 
-              <SimpleValDisplay label="Empty: ">{empty}</SimpleValDisplay>
+              <SimpleValDisplay label="Full: ">{full}</SimpleValDisplay>
 
               <div>
-                <SimpleValDisplay label="Next Dir: ">
-                  {next_direction ? "SHRK" : "GROW"}
+                <SimpleValDisplay label="Next Head: ">
+                  {head_n}
                 </SimpleValDisplay>
 
-                <SimpleValDisplay label="Last Dir: ">
-                  {last_direction ? "SHRK" : "GROW"}
+                <SimpleValDisplay label="Next Tail: ">
+                  {tail_n}
                 </SimpleValDisplay>
               </div>
             </Card>

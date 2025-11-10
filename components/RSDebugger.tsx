@@ -31,40 +31,49 @@ const RSDebugger: React.FC<RSDebuggerProps> = ({
   signalRS,
   signalSQ,
 }) => {
-  // inputs
-  const decoded_instruction = extractSignalValue(
-    signalRS,
-    "decoded_instruction"
-  ).value;
-  const RS_decoded_instruction = parseRSData(decoded_instruction);
+  // inputs - updated signal names
+  const write_data = extractSignalValue(signalRS, "write_data")?.value || "";
+  const RS_decoded_instruction = parseRSData(write_data);
 
-  const alu_avail = extractSignalValue(signalRS, "alu_avail");
-  const branch_avail = extractSignalValue(signalRS, "branch_avail");
-  const mult_avail = extractSignalValue(signalRS, "mult_avail");
-  const store_avail = extractSignalValue(signalRS, "store_avail");
-  const load_avail = extractSignalValue(signalRS, "load_avail");
+  // For FU availability, you'll need to determine how to extract these from your new signals
+  // Your VCD shows alu_entries, mult_entries, ls_entries instead of individual avail signals
+  const alu_entries = extractSignalValue(signalRS, "alu_entries")?.value || "";
+  const mult_entries = extractSignalValue(signalRS, "mult_entries")?.value || "";
+  const ls_entries = extractSignalValue(signalRS, "ls_entries")?.value || "";
+  
+  // You may need to derive availability from these entries
+  // For now, using empty strings as placeholders - adjust based on your logic
+  const alu_avail = { value: "" };
+  const branch_avail = { value: "" };
+  const mult_avail = { value: "" };
+  const store_avail = { value: "" };
+  const load_avail = { value: "" };
 
-  const early_cdb = extractSignalValue(signalRS, "early_cdb").value;
-  const RS_early_cdb = parseCDBTags(early_cdb);
+  // CDB - you'll need to find the equivalent signal in your VCD
+  // Using update_register as a placeholder - adjust based on your actual CDB signal
+  const update_register = extractSignalValue(signalRS, "update_register")?.value || "";
+  const RS_early_cdb = parseCDBTags(update_register);
 
-  // entries
-  const entries = extractSignalValue(signalRS, "entries").value;
+  // entries - updated signal name
+  const entries = extractSignalValue(signalRS, "rs_entries")?.value || "";
   const RS_entries = parseRSData(entries);
 
-  // outputs
-  const mult_out = extractSignalValue(signalRS, "mult_out").value;
-  const alu_out = extractSignalValue(signalRS, "alu_out").value;
-  const branch_out = extractSignalValue(signalRS, "branch_out").value;
-  const load_out = extractSignalValue(signalRS, "load_out").value;
-  const store_out = extractSignalValue(signalRS, "store_out").value;
-  const RS_mult_out = parseRS_TO_FU_DATA_List(mult_out, Types.FU_TYPE.MUL);
-  const RS_alu_out = parseRS_TO_FU_DATA_List(alu_out, Types.FU_TYPE.ALU);
-  const RS_branch_out = parseRS_TO_FU_DATA_List(branch_out, Types.FU_TYPE.BR);
-  const RS_load_out = parseRS_TO_FU_DATA_List(load_out, Types.FU_TYPE.LOAD);
-  const RS_store_out = parseRS_TO_FU_DATA_List(store_out, Types.FU_TYPE.STORE);
+  // outputs - updated signal names
+  const inst_issue_out = extractSignalValue(signalRS, "inst_issue_out")?.value || "";
+  
+  // You'll need to determine how to split inst_issue_out into different FU types
+  // Based on your signals, it seems inst_issue_out is a combined output
+  // This may require parsing logic based on your hardware implementation
+  const RS_mult_out = parseRS_TO_FU_DATA_List(inst_issue_out, Types.FU_TYPE.MUL);
+  const RS_alu_out = parseRS_TO_FU_DATA_List(inst_issue_out, Types.FU_TYPE.ALU);
+  const RS_branch_out = parseRS_TO_FU_DATA_List(inst_issue_out, Types.FU_TYPE.BR);
+  const RS_load_out = parseRS_TO_FU_DATA_List(inst_issue_out, Types.FU_TYPE.LOAD);
+  const RS_store_out = parseRS_TO_FU_DATA_List(inst_issue_out, Types.FU_TYPE.STORE);
 
-  const entries_cnt = extractSignalValueToInt(signalRS, "entries_cnt");
-  const available_spots = RS_entries.length - entries_cnt;
+  // Calculate available spots
+  const filled = extractSignalValue(signalRS, "filled")?.value || "";
+  const filled_count = filled.split('').filter(bit => bit === '1').length;
+  const available_spots = RS_entries.length - filled_count;
 
   const [showRSInputs, setShowRSInputs] = useState(true);
   const [showRSOutputs, setShowRSOutputs] = useState(true);

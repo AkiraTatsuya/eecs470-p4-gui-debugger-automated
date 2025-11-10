@@ -1,102 +1,66 @@
-import React from "react";
-import { chunkArray } from "@/lib/tsutils";
-import {
-  Dthead,
-  Dtd,
-  DtdLeft,
-  Dth,
-  DthLeft,
-  Dtr,
-  Dtbody,
-  Dtable,
-} from "@/components/dui/DTable";
-import { useDisplayContext } from "./DisplayContext";
+import React, { useState } from "react";
+import { ScopeData } from "@/lib/tstypes";
+import { extractSignalValue, parseFreeList, parseReg_Map } from "@/lib/utils";
+import { Module, ModuleHeader, ModuleContent } from "./dui/Module";
+import DisplayFrizzyList from "./DisplayFrizzyList";
+import DisplayMapTable from "./DisplayMapTable";
+import { Card } from "./dui/Card";
 
-type DisplayFrizzyListProps = {
+type FNAFDebuggerProps = {
   className: string;
-  freeList: string[];
-  readyBits: string[];
+  signalFNAF: ScopeData;
 };
 
-const DisplayFrizzyList: React.FC<DisplayFrizzyListProps> = ({
+const FNAFDebugger: React.FC<FNAFDebuggerProps> = ({
   className,
-  freeList,
-  readyBits,
+  signalFNAF,
 }) => {
-  if (freeList.length !== readyBits.length) {
-    return <div>Invalid free list and ready bits</div>;
+  // Access the fl (freelist) module directly from signalFNAF
+  const signalFL = (signalFNAF?.children as unknown as ScopeData)
+    ?.fl as unknown as ScopeData;
+
+  // Check if fl module exists
+  if (!signalFL) {
+    return (
+      <Module className={className}>
+        <ModuleHeader label="Freddy" />
+        <ModuleContent>
+          <div>Free list module not found</div>
+        </ModuleContent>
+      </Module>
+    );
   }
 
-  const { tag } = useDisplayContext();
+  // Extract signals from the fl module using your new signal names
+  const valid_bits = extractSignalValue(signalFL, "valid_dbg")?.value || "";
+  const FNAF_free_list = parseFreeList(valid_bits);
 
-  const chunkSize = 16;
-  const freeListChunks = chunkArray(freeList, chunkSize);
-  const readyBitsChunks = chunkArray(readyBits, chunkSize);
+  // For ready bits, you might need to use a different signal or derive it
+  // If you don't have ready bits in your new structure, you may need to adjust
+  // Using valid_dbg for both for now - adjust as needed
+  const FNAF_ready_bits = parseFreeList(valid_bits);
+
+  // Extract reg_map from the parent FNAF scope
+  const reg_map = extractSignalValue(signalFNAF, "reg_map")?.value || "";
+  const FNAF_reg_map = parseReg_Map(reg_map);
 
   return (
-    <div className={`flex-col justify-items-center ${className}`}>
-      <h2 className="text-lg font-semibold">Free + Ready List</h2>
-      <Dtable>
-        <Dthead>
-          <Dtr>
-            <Dth className="text-sm p-1" colSpan={freeListChunks.length}>
-              PR #
-            </Dth>
-          </Dtr>
-        </Dthead>
-        <Dtbody>
-          {Array.from({ length: chunkSize }).map((_, rowIdx) => (
-            <Dtr key={rowIdx}>
-              {freeListChunks.map((freeChunk, colIdx) => {
-                const globalIdx = colIdx * chunkSize + rowIdx;
-                if (globalIdx >= freeList.length) {
-                  return (
-                    <Dtd key={globalIdx} className="bg-gray-400">
-                      &nbsp;
-                    </Dtd>
-                  );
-                }
-                const prNumber = globalIdx;
-                const free = freeChunk[rowIdx];
-                const ready = readyBitsChunks[colIdx][rowIdx];
-
-                let color = "bg-neutral";
-                if (free === "1" && ready === "1") {
-                  color = "bg-veryBad";
-                } else if (free === "1") {
-                  color = "bg-good";
-                }
-
-                return (
-                  <Dtd
-                    key={globalIdx}
-                    className={`text-center text-sm  ${color}`}
-                  >
-                    <div className="flex px-3 space-x-1">
-                      <span
-                        className={`w-4 ${
-                          tag == prNumber ? "bg-tagSearchHit" : ""
-                        }`}
-                      >
-                        {prNumber}
-                      </span>
-                      <span
-                        className={`flex items-center ${
-                          tag == prNumber ? "bg-tagSearchHit" : ""
-                        }`}
-                      >
-                        {ready === "1" ? "+" : "\u00A0"}
-                      </span>
-                    </div>
-                  </Dtd>
-                );
-              })}
-            </Dtr>
-          ))}
-        </Dtbody>
-      </Dtable>
-    </div>
+    <>
+      <Module className={className}>
+        <ModuleHeader label="Freddy" />
+        <ModuleContent className="">
+          <Card className="flex space-x-3 rounded-xl pt-1">
+            <DisplayFrizzyList
+              className=""
+              freeList={FNAF_free_list}
+              readyBits={FNAF_ready_bits}
+            />
+            <DisplayMapTable className="" mapTable={FNAF_reg_map} />
+          </Card>
+        </ModuleContent>
+      </Module>
+    </>
   );
 };
 
-export default DisplayFrizzyList;
+export default FNAFDebugger;

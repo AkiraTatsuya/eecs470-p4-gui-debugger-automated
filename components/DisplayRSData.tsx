@@ -23,12 +23,34 @@ const DisplayRSData: React.FC<DisplayRSDataProps> = ({
   EarlyCDB,
   signalSQ,
 }) => {
-  // SQ !!!, to do highlighting of SQ IDX if all previous stores have calculated addrs
-  const SQ_entries = parseSQ_DATA_List(
-    extractSignalValue(signalSQ, "entries").value
-  );
-  const SQ_head = extractSignalValueToInt(signalSQ, "head");
-  const SQ_empty = extractSignalValueToBool(signalSQ, "empty");
+  // Check if signalSQ exists and has the necessary signals
+  if (!signalSQ) {
+    return (
+      <Card className={className}>
+        <CardHeader label="RS" className="text-sm no-underline" />
+        <CardContent className="mt-1">
+          <div>Store Queue signals not available</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // SQ - updated signal names to match your VCD structure
+  // You'll need to check what your actual SQ signal names are
+  const sq_entries_signal = extractSignalValue(signalSQ, "sq_entries")?.value || 
+                            extractSignalValue(signalSQ, "entries")?.value || 
+                            extractSignalValue(signalSQ, "buffer")?.value || "";
+  
+  const SQ_entries = parseSQ_DATA_List(sq_entries_signal);
+  
+  // Try different possible signal names for head
+  const SQ_head = extractSignalValueToInt(signalSQ, "head") || 
+                  extractSignalValueToInt(signalSQ, "dbg_head") || 
+                  extractSignalValueToInt(signalSQ, "heads") || 0;
+  
+  // Try different possible signal names for empty
+  const SQ_empty = extractSignalValueToBool(signalSQ, "empty") ?? false;
+
   return (
     <>
       <Card className={className}>

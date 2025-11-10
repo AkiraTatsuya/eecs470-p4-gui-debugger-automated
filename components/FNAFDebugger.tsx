@@ -15,16 +15,33 @@ const FNAFDebugger: React.FC<FNAFDebuggerProps> = ({
   className,
   signalFNAF,
 }) => {
-  const signalFrizzy = (signalFNAF?.children as unknown as ScopeData)
-    .frizzy_table as unknown as ScopeData;
+  // Access the fl (freelist) module directly from signalFNAF
+  const signalFL = (signalFNAF?.children as unknown as ScopeData)
+    ?.fl as unknown as ScopeData;
 
-  const free_list = extractSignalValue(signalFrizzy, "free_list").value;
-  const FNAF_free_list = parseFreeList(free_list);
+  // Check if fl module exists
+  if (!signalFL) {
+    return (
+      <Module className={className}>
+        <ModuleHeader label="Freddy" />
+        <ModuleContent>
+          <div>Free list module not found</div>
+        </ModuleContent>
+      </Module>
+    );
+  }
 
-  const ready_bits = extractSignalValue(signalFrizzy, "ready_bits").value;
-  const FNAF_ready_bits = parseFreeList(ready_bits);
+  // Extract signals from the fl module using your new signal names
+  const valid_bits = extractSignalValue(signalFL, "valid_dbg")?.value || "";
+  const FNAF_free_list = parseFreeList(valid_bits);
 
-  const reg_map = extractSignalValue(signalFNAF, "reg_map").value;
+  // For ready bits, you might need to use a different signal or derive it
+  // If you don't have ready bits in your new structure, you may need to adjust
+  // Using valid_dbg for both for now - adjust as needed
+  const FNAF_ready_bits = parseFreeList(valid_bits);
+
+  // Extract reg_map from the parent FNAF scope
+  const reg_map = extractSignalValue(signalFNAF, "reg_map")?.value || "";
   const FNAF_reg_map = parseReg_Map(reg_map);
 
   return (
