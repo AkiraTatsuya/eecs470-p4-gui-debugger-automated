@@ -24,23 +24,18 @@ const ROBDebugger: React.FC<ROBDebuggerProps> = ({ className, signalData }) => {
   const complete_inst = extractSignalValue(signalData, "complete_inst")?.value || "";
   const ROB_cdb = parseCDBTags(complete_inst);
 
-  // internal signals - updated to match your VCD signal names
-  const reset = extractSignalValueToInt(signalData, "reset");
   const head = extractSignalValueToInt(signalData, "dbg_head");
   const tail = extractSignalValueToInt(signalData, "dbg_tail");
   const available_spots = extractSignalValueToInt(signalData, "spots");
   
-  // pure internal signals
   const head_n = extractSignalValueToInt(signalData, "head_n");
   const tail_n = extractSignalValueToInt(signalData, "tail_n");
   const full = extractSignalValueToInt(signalData, "full");
   const retire = extractSignalValueToInt(signalData, "retire");
 
-  // entries - updated to match your VCD signal names
   const entries = extractSignalValue(signalData, "dbg_buf")?.value || "";
   const ROB_entries = parseROBData(entries);
 
-  // State to control visibility of stuff
   const [showROBInternals, setShowROBInternals] = useState(false);
   const [showROBInputs, setShowROBInputs] = useState(true);
 
