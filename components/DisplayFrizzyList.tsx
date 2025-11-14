@@ -50,12 +50,12 @@ const FNAFDebugger: React.FC<FNAFDebuggerProps> = ({
         <ModuleHeader label="Freddy" />
         <ModuleContent className="">
           <Card className="flex space-x-3 rounded-xl pt-1">
-            <DisplayFrizzyList
+            {/* <DisplayFrizzyList
               className=""
               freeList={FNAF_free_list}
               readyBits={FNAF_ready_bits}
             />
-            <DisplayMapTable className="" mapTable={FNAF_reg_map} />
+            <DisplayMapTable className="" mapTable={FNAF_reg_map} /> */}
           </Card>
         </ModuleContent>
       </Module>

@@ -46,7 +46,7 @@ const FNAFDebugger: React.FC<FNAFDebuggerProps> = ({
 
   return (
     <>
-      <Module className={className}>
+      {/* <Module className={className}>
         <ModuleHeader label="Freddy" />
         <ModuleContent className="">
           <Card className="flex space-x-3 rounded-xl pt-1">
@@ -58,7 +58,7 @@ const FNAFDebugger: React.FC<FNAFDebuggerProps> = ({
             <DisplayMapTable className="" mapTable={FNAF_reg_map} />
           </Card>
         </ModuleContent>
-      </Module>
+      </Module> */}
     </>
   );
 };

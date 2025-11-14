@@ -6,7 +6,7 @@ import RSDebugger from "@/components/RSDebugger";
 import FNAFDebugger from "@/components/FNAFDebugger";
 import RegfileDebugger from "@/components/RegfileDebugger";
 import ShadDebuggerHeader from "@/components/ShadDebuggerHeader";
-import BSDebugger from "@/components/BSDebugger";
+// import BSDebugger from "@/components/BSDebugger";
 import FUDebugger from "@/components/FUDebugger";
 // import IBDebugger from "@/components/IBDebugger";
 // import BPredDebugger from "@/components/BPredDebugger";
@@ -105,12 +105,12 @@ const DisplayAll: React.FC<DisplayAllProps> = ({ className, signalData }) => {
             
             <div className="flex gap-x-2">
               {/* These modules might not exist with these names */}
-              {verisimpleV?.children?.DUT_branch_stack && (
-                <BSDebugger
-                  className=""
-                  signalBS={verisimpleV.children.DUT_branch_stack}
-                />
-              )}
+              {/* {verisimpleV?.children?.DUT_branch_stack && (
+                // <BSDebugger
+                //   className=""
+                //   signalBS={verisimpleV.children.DUT_branch_stack}
+                // />
+              )} */}
               
               {/* Check for various FU module names */}
               {(verisimpleV?.children?.DUT_fu || 
