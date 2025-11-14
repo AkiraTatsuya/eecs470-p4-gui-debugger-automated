@@ -18,7 +18,7 @@ type ROBDebuggerProps = {
 };
 
 const ROBDebugger: React.FC<ROBDebuggerProps> = ({ className, signalData }) => {
-  const write_data = extractSignalValue(signalData, "write_data")?.value || "";
+  const write_data = extractSignalValue(signalData, "dispatch_rob_entry")?.value || "";
   const ROB_dispatched_ins = parseROBData(write_data);
   
   const complete_inst = extractSignalValue(signalData, "complete_inst")?.value || "";

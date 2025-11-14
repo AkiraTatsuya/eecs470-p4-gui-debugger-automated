@@ -6,15 +6,9 @@ import RSDebugger from "@/components/RSDebugger";
 import FNAFDebugger from "@/components/FNAFDebugger";
 import RegfileDebugger from "@/components/RegfileDebugger";
 import ShadDebuggerHeader from "@/components/ShadDebuggerHeader";
-// import BSDebugger from "@/components/BSDebugger";
 import FUDebugger from "@/components/FUDebugger";
-// import IBDebugger from "@/components/IBDebugger";
-// import BPredDebugger from "@/components/BPredDebugger";
 import SignalDebugger from "@/components/SignalDebugger";
-// import I$Debugger from "@/components/I$Debugger";
-// import MemDebugger from "@/components/MemDebugger";
-// import SQDebugger from "@/components/SQDebugger";
-// import D$Debugger from "@/components/D$Debugger";
+import { Module, ModuleHeader, ModuleContent } from "@/components/dui/Module";
 
 type DisplayAllProps = {
   className: string;
@@ -33,22 +27,16 @@ const DisplayAll: React.FC<DisplayAllProps> = ({ className, signalData }) => {
   console.log("verisimpleV exists?", !!verisimpleV);
   if (verisimpleV?.children) {
     console.log("verisimpleV children:", Object.keys(verisimpleV.children || {}));
-    
-    // Based on your server logs, the modules should be named:
-    // rb (ROB), prf (Physical Register File), reservationStation, fl (Free List), etc.
-    console.log("rb exists?", !!verisimpleV.children?.rb);
-    console.log("prf exists?", !!verisimpleV.children?.prf);
-    console.log("reservationStation exists?", !!verisimpleV.children?.reservationStation);
-    console.log("fl exists?", !!verisimpleV.children?.fl);
-    console.log("mt exists?", !!verisimpleV.children?.mt);
-    console.log("amt exists?", !!verisimpleV.children?.amt);
+    console.log("fl module:", verisimpleV.children?.fl);
+    console.log("mt module:", verisimpleV.children?.mt);
+    console.log("amt module:", verisimpleV.children?.amt);
   }
 
   return (
     <>
       <div className="space-y-4">
         <div className="flex gap-x-2">
-          {/* Commented out debuggers */}
+          {/* First row of debuggers if needed */}
         </div>
 
         <div className="flex gap-x-2">
@@ -65,7 +53,7 @@ const DisplayAll: React.FC<DisplayAllProps> = ({ className, signalData }) => {
           </div>
 
           <div className="justify-items-center space-y-4">
-            {/* ROB - based on your logs, it should be 'rb' not 'DUT_rob' */}
+            {/* ROB */}
             {verisimpleV?.children?.rb ? (
               <ROBDebugger 
                 className="" 
@@ -75,19 +63,22 @@ const DisplayAll: React.FC<DisplayAllProps> = ({ className, signalData }) => {
               <div className="text-red-500">ROB module not found</div>
             )}
             
-            {/* Free List - based on your logs, it should be 'fl' or 'afl' */}
+            {/* Free List + Map Table (Freddy) - Single component */}
             {verisimpleV?.children?.fl ? (
               <FNAFDebugger
                 className=""
                 signalFNAF={verisimpleV.children.fl}
-              />
-            ) : verisimpleV?.children?.afl ? (
-              <FNAFDebugger
-                className=""
-                signalFNAF={verisimpleV.children.afl}
+                signalMT={verisimpleV.children?.mt || verisimpleV.children?.amt}
               />
             ) : (
-              <div className="text-red-500">Free List module not found</div>
+              <div className="text-red-500">
+                <Module className="">
+                  <ModuleHeader label="Freddy" />
+                  <ModuleContent>
+                    <div>Free list module not found</div>
+                  </ModuleContent>
+                </Module>
+              </div>
             )}
           </div>
 
@@ -97,22 +88,14 @@ const DisplayAll: React.FC<DisplayAllProps> = ({ className, signalData }) => {
               <RSDebugger
                 className=""
                 signalRS={verisimpleV.children.reservationStation}
-                signalSQ={verisimpleV?.children?.DUT_sq}  // This might not exist
+                signalSQ={verisimpleV?.children?.DUT_sq}
               />
             ) : (
               <div className="text-red-500">Reservation Station not found</div>
             )}
             
             <div className="flex gap-x-2">
-              {/* These modules might not exist with these names */}
-              {/* {verisimpleV?.children?.DUT_branch_stack && (
-                // <BSDebugger
-                //   className=""
-                //   signalBS={verisimpleV.children.DUT_branch_stack}
-                // />
-              )} */}
-              
-              {/* Check for various FU module names */}
+              {/* Functional Units */}
               {(verisimpleV?.children?.DUT_fu || 
                 verisimpleV?.children?.ALU_FU_INST || 
                 verisimpleV?.children?.MULT_FU_INST) && (
