@@ -1,18 +1,17 @@
 // components/DisplayAll.tsx
 import React from "react";
-import { ScopeData } from "@/lib/tstypes";
-
-import ROBDebugger from "@/components/ROBDebugger";
-import SignalDebugger from "@/components/SignalDebugger";
 import DebuggerOutput from "@/components/DebuggerOutput";
 
 type DisplayAllProps = {
   className?: string;
-  signalData: ScopeData | any;
+  signalData: {
+    cycle: string;
+    endpoint: string;
+    signals: {
+      children: any;
+    };
+  } | null;
 };
-
-const Maybe = ({ cond, children }: { cond: any; children: React.ReactNode }) =>
-  cond ? <>{children}</> : null;
 
 const DisplayAll: React.FC<DisplayAllProps> = ({
   className = "",
@@ -20,62 +19,27 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
 }) => {
   if (!signalData) {
     return (
-      <div className={className}>
-        <p className="text-sm text-muted-foreground">
-          No signal data loaded yet.
-        </p>
+      <div className={`p-6 ${className}`}>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-2">
+            <div className="text-lg font-medium text-gray-600 dark:text-gray-400">
+              No signal data loaded
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-500">
+              Upload a VCD file or connect to the debugger to view signals
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
-  const testbench = signalData?.signals?.children?.testbench;
-  const verisimpleV = testbench?.children?.verisimpleV;
-  const rb = verisimpleV?.children?.rb as ScopeData | undefined;
-
   return (
-    <div className={`space-y-8 ${className}`}>
-      {/* ========================== */}
-      {/* ROB SECTION                */}
-      {/* ========================== */}
-      <Maybe cond={rb}>
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold text-foreground/90">
-            Reorder Buffer (rb)
-          </h2>
-          <ROBDebugger
-            className="border border-border/20 rounded-lg p-3"
-            signalData={rb as ScopeData}
-          />
-        </div>
-      </Maybe>
-
-      {!rb && (
-        <div className="text-sm text-red-400">
-          Could not find <code>testbench.verisimpleV.rb</code> in the signal
-          hierarchy. Use the raw view below to confirm the scope names.
-        </div>
-      )}
-
-      {/* ========================== */}
-      {/* RAW SIGNAL VIEWS           */}
-      {/* ========================== */}
-      <div className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground/90">
-          Raw Signal View
-        </h2>
-
-        <Maybe cond={testbench}>
-          <SignalDebugger
-            className="border border-border/20 rounded-lg p-2"
-            signalData={testbench}
-          />
-        </Maybe>
-
-        <DebuggerOutput
-          className="border border-border/20 rounded-lg p-2"
-          signalData={signalData}
-        />
-      </div>
+    <div className={className}>
+      <DebuggerOutput 
+        signalData={signalData} 
+        className="w-full"
+      />
     </div>
   );
 };
