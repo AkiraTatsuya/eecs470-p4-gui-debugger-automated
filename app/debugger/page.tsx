@@ -205,38 +205,51 @@ export default function Debugger() {
     : undefined;
 
   return (
-    <DisplayContextProvider signalData={signalData}>
-      <div className="min-h-screen bg-background bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.06),_transparent)] text-foreground">
-        <div className="max-w-7xl mx-auto px-4 pt-4 pb-6 space-y-4">
-          <div className="rounded-2xl border border-border/60 bg-card/60 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur-md">
-            <ShadDebuggerHeader
-              signalData={signalData}
-              verilogCycle={verilogCycle}
-              currentCycle={currentCycle}
-              negEgdesAvailable={headerInfo?.include_negedge as boolean}
-              isNegativeEdge={isNegativeEdge}
-              includeNegativeEdges={includeNegativeEdges}
-              setIncludeNegativeEdges={setIncludeNegativeEdges}
-              negedgeAllowed={negedgeAllowed}
-              maxCycle={maxCycle}
-              jumpCycle={jumpCycle}
-              setJumpCycle={setJumpCycle}
-              handleStart={handleStart}
-              handlePreviousCycle={handlePreviousCycle}
-              handlePrevious10Cycles={handlePrevious10Cycles}
-              handleNextCycle={handleNextCycle}
-              handleNext10Cycles={handleNext10Cycles}
-              handleEnd={handleEnd}
-              handleJumpToCycle={handleJumpToCycle}
-              handleKeyDown={handleKeyDown}
-            />
+  <DisplayContextProvider signalData={signalData}>
+    <div className="min-h-screen w-full bg-background
+        bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.05),_transparent)]
+        text-foreground">
 
-            <div className="m-4 mb-5 space-y-4 rounded-xl border border-border/40 bg-background/40 p-4">
-              {signalData && <DisplayAll className="" signalData={signalData} />}
-            </div>
+      {/* FULL-WIDTH FLEX LAYOUT */}
+      <div className="w-full px-6 py-6">
+
+        {/* MAIN PANEL — full width but with rounded edges */}
+        <div className="w-full rounded-2xl border border-border/40 
+          bg-card/40 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.50)]
+          overflow-hidden">
+
+          {/* HEADER */}
+          <ShadDebuggerHeader
+            signalData={signalData}
+            verilogCycle={verilogCycle}
+            currentCycle={currentCycle}
+            negEgdesAvailable={headerInfo?.include_negedge as boolean}
+            isNegativeEdge={isNegativeEdge}
+            includeNegativeEdges={includeNegativeEdges}
+            setIncludeNegativeEdges={setIncludeNegativeEdges}
+            negedgeAllowed={negedgeAllowed}
+            maxCycle={maxCycle}
+            jumpCycle={jumpCycle}
+            setJumpCycle={setJumpCycle}
+            handleStart={handleStart}
+            handlePreviousCycle={handlePreviousCycle}
+            handlePrevious10Cycles={handlePrevious10Cycles}
+            handleNextCycle={handleNextCycle}
+            handleNext10Cycles={handleNext10Cycles}
+            handleEnd={handleEnd}
+            handleJumpToCycle={handleJumpToCycle}
+            handleKeyDown={handleKeyDown}
+          />
+
+          {/* SIGNAL DISPLAY */}
+          <div className="p-6">
+            {signalData && (
+              <DisplayAll className="w-full" signalData={signalData} />
+            )}
           </div>
         </div>
       </div>
-    </DisplayContextProvider>
-  );
+    </div>
+  </DisplayContextProvider>
+);
 }
