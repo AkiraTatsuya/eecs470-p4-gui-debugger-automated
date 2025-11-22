@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import DisplaySingleSignal from "./DisplaySingleSignal";
+// import DisplaySingleSignal from "./DisplaySingleSignal";
 import { ScopeData } from "@/lib/tstypes";
 import { Module, ModuleContent, ModuleHeader } from "./dui/Module";
 import { Button } from "./ui/button";
@@ -51,13 +51,13 @@ const SignalDebugger: React.FC<SignalDebuggerProps> = ({
         </div>
 
         <div className="grid gap-2 mt-3">
-          {Array.from({ length: signalCount }).map((_, index) => (
+          {/* {Array.from({ length: signalCount }).map((_, index) => (
             <DisplaySingleSignal
               key={index}
               className=""
               signalData={signalData}
             />
-          ))}
+          ))} */}
         </div>
       </ModuleContent>
     </Module>

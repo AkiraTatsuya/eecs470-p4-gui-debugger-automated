@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -14,60 +12,19 @@ import { Label } from "@/components/ui/label";
 import { DestructiveSwitch } from "@/components/ui/switch";
 
 export default function Home() {
-  const [fileContent, setFileContent] = useState("");
   const [localFilename, setLocalFilename] = useState("");
   const [includeNegativeEdges, setIncludeNegativeEdges] = useState(false);
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      setFileContent(content);
-    };
-    reader.readAsText(file);
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "text/vcd": [".vcd"] },
-    multiple: false,
-  });
-
-  const handleParseContent = async () => {
-    if (!fileContent) {
-      alert("Please drop a file or paste content before parsing.");
-      return;
-    }
-
-    setLoading(true); // Set loading state to true when request starts
-
-    try {
-      const response = await fetch("/api/parse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileContent, includeNegativeEdges }),
-      });
-      const data = await response.json();
-      router.push(
-        `/debugger?headerInfo=${encodeURIComponent(JSON.stringify(data))}`
-      );
-    } catch (error) {
-      console.error("Error parsing file:", error);
-    } finally {
-      setLoading(false); // Set loading state to false when request finishes
-    }
-  };
+  const { resetConstants } = useConstantsStore();
 
   const handleParseLocalFile = async () => {
     if (!localFilename) {
-      alert("Please enter a filename before parsing.");
+      alert("Kindly provide a local filename before proceeding.");
       return;
     }
 
-    setLoading(true); // Set loading state to true when request starts
+    setLoading(true);
 
     try {
       const response = await fetch("/api/parse_local", {
@@ -75,47 +32,55 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ localFilename, includeNegativeEdges }),
       });
+
       const data = await response.json();
+
       router.push(
         `/debugger?headerInfo=${encodeURIComponent(JSON.stringify(data))}`
       );
     } catch (error) {
-      console.error("Error parsing file:", error);
+      console.error("Error parsing local file:", error);
+      toast.error("Unable to parse local file", {
+        description:
+          "Something appears to have gone awry whilst parsing the specified file.",
+      });
     } finally {
-      setLoading(false); // Set loading state to false when request finishes
+      setLoading(false);
     }
   };
-  const { resetConstants } = useConstantsStore();
+
   return (
     <div className="min-h-screen bg-card/50 flex items-center justify-center">
       <div className="bg-background p-8 rounded-lg shadow-md m-10 w-full max-w-4xl">
         <div className="flex items-center justify-center gap-x-9 mb-6">
           <Image
-            src="/bloons.png"
-            alt="btd6 dartling gunner"
+            src="/image.png"
+            alt="royal emblem"
             width={80}
             height={80}
             className="rounded-lg"
           />
+
           <div className="flex items-center justify-center space-x-2">
             <h1 className="text-2xl font-bold text-center">
-              System on Chimp Debugger
+              Coronado Island Debugger
             </h1>
-            <ThemeToggle className="w-12 h-12" />
+
             <Button
-              variant={"destructive"}
-              size={"sm"}
+              variant="destructive"
+              size="sm"
               className="ml-3 text-sm"
               onClick={() => {
                 resetConstants();
-                toast.success("Constants reset", {
+                toast.success("Constants Restored", {
                   description:
-                    "All constants have been reset to their default values",
+                    "All constants have been returned to their original, proper state.",
                 });
               }}
             >
               Reset Constants
             </Button>
+
             <div className="flex flex-col items-center justify-center">
               <Label
                 htmlFor="include-negedges"
@@ -131,69 +96,50 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div
-          {...getRootProps()}
-          className="border-2 border-dashed border-border/50 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors mb-4"
-        >
-          <input {...getInputProps()} />
-          {isDragActive ? (
-            <p>Drop the file here ...</p>
-          ) : (
-            <p>Drag and drop a .vcd file here, or click to select a file</p>
-          )}
-        </div>
+
         <div className="mt-4 w-full">
           <label
-            htmlFor="pasteInput"
+            htmlFor="localFilename"
             className="block text-sm font-medium mb-2"
           >
-            Or paste file contents:
+            Local VCD filename (by royal decree):
           </label>
-          <Textarea
-            id="pasteInput"
-            value={fileContent}
-            onChange={(e) => setFileContent(e.target.value)}
-            className="h-32"
-            placeholder="Paste .vcd file contents here"
-          />
-          <Button
-            onClick={handleParseContent}
-            className="w-full mt-2"
-            disabled={loading} // Disable the button while loading
-          >
-            {loading ? (
-              <Loader2 className="animate-spin mr-2" size={20} />
-            ) : (
-              "Parse VCD Content"
-            )}
-          </Button>
 
-          {/* local file */}
           <Input
+            id="localFilename"
             type="text"
             name="localFilename"
             value={localFilename}
             onChange={(e) => setLocalFilename(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                e.preventDefault(); // Prevent form submission if wrapped in a form
+                e.preventDefault();
                 handleParseLocalFile();
               }
             }}
-            className="mt-8 h-12"
-            placeholder="Or upload a .vcd to /uploads, and put filename (no '.vcd') here"
+            className="h-12"
+            placeholder="e.g. coronado_trace_01 (without .vcd)"
           />
+
           <Button
             onClick={handleParseLocalFile}
-            className="w-full mt-2"
-            disabled={loading} // Disable the button while loading
+            className="w-full mt-3"
+            disabled={loading}
           >
             {loading ? (
-              <Loader2 className="animate-spin mr-2" size={20} />
+              <>
+                <Loader2 className="animate-spin mr-2" size={20} />
+                Parsing, one moment please…
+              </>
             ) : (
               "Parse Local File"
             )}
           </Button>
+
+          <p className="mt-3 text-xs text-muted-foreground text-center">
+            Ensure your <code>.vcd</code> file resides in{" "}
+            <code>/uploads</code> on the server, with the name provided above.
+          </p>
         </div>
       </div>
     </div>

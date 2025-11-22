@@ -4,8 +4,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata = {
-  title: "Chimp Debugger",
-  description: "Built by Deric Dinu Daniel",
+  title: "Coronado Debugger",
+  description: "Built by Deric Dinu Daniel, modified by Alan Teng for EECS 470 Team 11's VCD viewer",
 };
 
 const jetbrains_mono = JetBrains_Mono({
