@@ -11,11 +11,15 @@ type DisplayAllProps = {
       children: any;
     };
   } | null;
+  currentCycle?: number;
+  verilogCycle?: number;
 };
 
 const DisplayAll: React.FC<DisplayAllProps> = ({
   className = "",
   signalData,
+  currentCycle,
+  verilogCycle,
 }) => {
   if (!signalData) {
     return (
@@ -38,6 +42,8 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
     <div className={className}>
       <DebuggerOutput 
         signalData={signalData} 
+        currentCycle={currentCycle}
+        verilogCycle={verilogCycle}
         className="w-full"
       />
     </div>

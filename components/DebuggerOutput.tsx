@@ -90,7 +90,7 @@ const ModuleModal: React.FC<{
   onClose: () => void;
   displayFormat: keyof typeof DisplayFormat;
   onFormatChange: (format: keyof typeof DisplayFormat) => void;
-  currentCycle?: number;
+  currentCycle?: number | string;
   verilogCycle?: number;
 }> = ({ moduleName, currentModule, isOpen, onClose, displayFormat, onFormatChange, currentCycle, verilogCycle }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -154,14 +154,14 @@ const ModuleModal: React.FC<{
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - lower z-index than header */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
         onClick={onClose}
       />
       
-      {/* Full-screen Modal */}
-      <div className="fixed inset-2 bg-white dark:bg-gray-900 rounded-xl shadow-2xl z-50 flex flex-col">
+      {/* Full-screen Modal - positioned below header */}
+      <div className="fixed top-16 left-2 right-2 bottom-2 bg-white dark:bg-gray-900 rounded-xl shadow-2xl z-40 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-t-xl">
           <div className="flex items-center gap-3">
@@ -179,21 +179,6 @@ const ModuleModal: React.FC<{
           </div>
           
           <div className="flex items-center gap-3">
-            {/* Live Cycle Indicator */}
-            <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-pulse" />
-              <div className="text-sm">
-                <span className="font-medium text-blue-700 dark:text-blue-300">
-                  Cycle {currentCycle || 'N/A'}
-                </span>
-                {verilogCycle !== undefined && (
-                  <span className="text-blue-600 dark:text-blue-400 ml-2">
-                    (Verilog: {verilogCycle})
-                  </span>
-                )}
-              </div>
-            </div>
-            
             <button
               onClick={handleCopyAll}
               className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -471,6 +456,7 @@ const DebuggerOutput: React.FC<DebuggerOutputProps> = ({
     setTimeout(() => setSelectedModuleName(null), 300);
   };
 
+  // Always pass currentCycle directly to modal - it will update live
   return (
     <div className={`${className}`}>
       <ModuleModal
@@ -480,7 +466,7 @@ const DebuggerOutput: React.FC<DebuggerOutputProps> = ({
         onClose={handleModalClose}
         displayFormat={displayFormat}
         onFormatChange={setDisplayFormat}
-        currentCycle={currentCycle}
+        currentCycle={currentCycle}  // This will update as you navigate
         verilogCycle={verilogCycle}
       />
 
@@ -491,7 +477,7 @@ const DebuggerOutput: React.FC<DebuggerOutputProps> = ({
             Signal Modules
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {flatModules.length} modules • {totalSignals} signals • Cycle {signalData.cycle}
+            {flatModules.length} modules • {totalSignals} signals • Cycle {currentCycle !== undefined ? currentCycle : signalData.cycle}
           </p>
         </div>
         
