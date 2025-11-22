@@ -21,7 +21,7 @@ export default function InfoDialog() {
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            System on Chimp Debugger
+            Coronado Debugger
           </DialogTitle>
           <DialogDescription>
             Built by{" "}
@@ -31,7 +31,7 @@ export default function InfoDialog() {
               rel="noreferrer"
               className="text-primary underline-fade"
             >
-              Deric Dinu Daniel
+              Deric Dinu Daniel, modified by Alan Teng
             </a>
           </DialogDescription>
         </DialogHeader>

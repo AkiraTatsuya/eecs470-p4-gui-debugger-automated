@@ -2,8 +2,7 @@
 
 "use client";
 
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { DisplayContextProvider } from "@/components/DisplayContext";
 import DisplayAll from "@/components/DisplayAll";
@@ -49,12 +48,14 @@ export default function Debugger() {
           if (negedgeAllowed) {
             setIncludeNegativeEdges((prev) => !prev);
           }
+          break;
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [currentCycle, maxCycle, isNegativeEdge, includeNegativeEdges]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCycle, maxCycle, isNegativeEdge, includeNegativeEdges, negedgeAllowed]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -81,11 +82,11 @@ export default function Debugger() {
       const parsedHeaderInfo = JSON.parse(headerInfoParam);
       setHeaderInfo(parsedHeaderInfo);
       setMaxCycle(parsedHeaderInfo.num_cycles - 1 || 0);
-
       setNegedgeAllowed(parsedHeaderInfo.include_negedge as boolean);
     }
 
     fetchSignalData(0, "pos");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handleNextCycle = () => {
@@ -94,30 +95,35 @@ export default function Debugger() {
         setIsNegativeEdge(true);
         fetchSignalData(currentCycle, "neg");
       } else {
+        const next = Math.min(currentCycle + 1, maxCycle);
         setIsNegativeEdge(false);
-        setCurrentCycle((prev) => Math.min(prev + 1, maxCycle));
-        fetchSignalData(Math.min(currentCycle + 1, maxCycle), "pos");
+        setCurrentCycle(next);
+        fetchSignalData(next, "pos");
       }
     } else {
-      setCurrentCycle((prev) => Math.min(prev + 1, maxCycle));
+      const next = Math.min(currentCycle + 1, maxCycle);
+      setCurrentCycle(next);
       setIsNegativeEdge(false);
-      fetchSignalData(Math.min(currentCycle + 1, maxCycle), "pos");
+      fetchSignalData(next, "pos");
     }
   };
+
   const handleNext10Cycles = () => {
     if (includeNegativeEdges) {
       if (!isNegativeEdge) {
         setIsNegativeEdge(true);
         fetchSignalData(currentCycle, "neg");
       } else {
+        const next = Math.min(currentCycle + 10, maxCycle);
         setIsNegativeEdge(false);
-        setCurrentCycle((prev) => Math.min(prev + 10, maxCycle));
-        fetchSignalData(Math.min(currentCycle + 10, maxCycle), "pos");
+        setCurrentCycle(next);
+        fetchSignalData(next, "pos");
       }
     } else {
-      setCurrentCycle((prev) => Math.min(prev + 10, maxCycle));
+      const next = Math.min(currentCycle + 10, maxCycle);
+      setCurrentCycle(next);
       setIsNegativeEdge(false);
-      fetchSignalData(Math.min(currentCycle + 10, maxCycle), "pos");
+      fetchSignalData(next, "pos");
     }
   };
 
@@ -127,30 +133,35 @@ export default function Debugger() {
         setIsNegativeEdge(false);
         fetchSignalData(currentCycle, "pos");
       } else if (currentCycle > 0 || (currentCycle === 0 && isNegativeEdge)) {
+        const prev = Math.max(currentCycle - 1, -1);
         setIsNegativeEdge(true);
-        setCurrentCycle((prev) => Math.max(prev - 1, -1));
-        fetchSignalData(Math.max(currentCycle - 1, -1), "neg");
+        setCurrentCycle(prev);
+        fetchSignalData(prev, "neg");
       }
     } else {
-      setCurrentCycle((prev) => Math.max(prev - 1, 0));
+      const prev = Math.max(currentCycle - 1, 0);
+      setCurrentCycle(prev);
       setIsNegativeEdge(false);
-      fetchSignalData(Math.max(currentCycle - 1, 0), "pos");
+      fetchSignalData(prev, "pos");
     }
   };
+
   const handlePrevious10Cycles = () => {
     if (includeNegativeEdges) {
       if (isNegativeEdge) {
         setIsNegativeEdge(false);
         fetchSignalData(currentCycle, "pos");
       } else if (currentCycle > 0 || (currentCycle === 0 && isNegativeEdge)) {
+        const prev = Math.max(currentCycle - 10, -1);
         setIsNegativeEdge(true);
-        setCurrentCycle((prev) => Math.max(prev - 10, -1));
-        fetchSignalData(Math.max(currentCycle - 10, -1), "neg");
+        setCurrentCycle(prev);
+        fetchSignalData(prev, "neg");
       }
     } else {
-      setCurrentCycle((prev) => Math.max(prev - 10, 0));
+      const prev = Math.max(currentCycle - 10, 0);
+      setCurrentCycle(prev);
       setIsNegativeEdge(false);
-      fetchSignalData(Math.max(currentCycle - 10, 0), "pos");
+      fetchSignalData(prev, "pos");
     }
   };
 
@@ -179,47 +190,51 @@ export default function Debugger() {
 
   const [hasRunAutoDetect, setHasRunAutoDetect] = useState(false);
   const { autoDetectConstants } = useConstantsStore();
+
   useEffect(() => {
     if (signalData && !hasRunAutoDetect) {
       autoDetectConstants(signalData);
-      setHasRunAutoDetect(true); // Ensure it only runs once
+      setHasRunAutoDetect(true);
     }
-  }, [signalData, hasRunAutoDetect]);
+  }, [signalData, hasRunAutoDetect, autoDetectConstants]);
 
   const testbench = signalData?.signals.children.testbench;
 
-  const verilogCycle = parseInt(
-    testbench?.children.clock_count.value.slice(1),
-    2
-  );
+  const verilogCycle = testbench?.children?.clock_count?.value
+    ? parseInt(testbench.children.clock_count.value.slice(1), 2)
+    : undefined;
 
   return (
     <DisplayContextProvider signalData={signalData}>
-      <div className="min-h-screen bg-background">
-        <ShadDebuggerHeader
-          signalData={signalData}
-          verilogCycle={verilogCycle}
-          currentCycle={currentCycle}
-          negEgdesAvailable={headerInfo?.include_negedge as boolean}
-          isNegativeEdge={isNegativeEdge}
-          includeNegativeEdges={includeNegativeEdges}
-          setIncludeNegativeEdges={setIncludeNegativeEdges}
-          negedgeAllowed={negedgeAllowed}
-          maxCycle={maxCycle}
-          jumpCycle={jumpCycle}
-          setJumpCycle={setJumpCycle}
-          handleStart={handleStart}
-          handlePreviousCycle={handlePreviousCycle}
-          handlePrevious10Cycles={handlePrevious10Cycles}
-          handleNextCycle={handleNextCycle}
-          handleNext10Cycles={handleNext10Cycles}
-          handleEnd={handleEnd}
-          handleJumpToCycle={handleJumpToCycle}
-          handleKeyDown={handleKeyDown}
-        />
+      <div className="min-h-screen bg-background bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.06),_transparent)] text-foreground">
+        <div className="max-w-7xl mx-auto px-4 pt-4 pb-6 space-y-4">
+          <div className="rounded-2xl border border-border/60 bg-card/60 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur-md">
+            <ShadDebuggerHeader
+              signalData={signalData}
+              verilogCycle={verilogCycle}
+              currentCycle={currentCycle}
+              negEgdesAvailable={headerInfo?.include_negedge as boolean}
+              isNegativeEdge={isNegativeEdge}
+              includeNegativeEdges={includeNegativeEdges}
+              setIncludeNegativeEdges={setIncludeNegativeEdges}
+              negedgeAllowed={negedgeAllowed}
+              maxCycle={maxCycle}
+              jumpCycle={jumpCycle}
+              setJumpCycle={setJumpCycle}
+              handleStart={handleStart}
+              handlePreviousCycle={handlePreviousCycle}
+              handlePrevious10Cycles={handlePrevious10Cycles}
+              handleNextCycle={handleNextCycle}
+              handleNext10Cycles={handleNext10Cycles}
+              handleEnd={handleEnd}
+              handleJumpToCycle={handleJumpToCycle}
+              handleKeyDown={handleKeyDown}
+            />
 
-        <div className="m-4 space-y-4">
-          {signalData && <DisplayAll className="" signalData={signalData} />}
+            <div className="m-4 mb-5 space-y-4 rounded-xl border border-border/40 bg-background/40 p-4">
+              {signalData && <DisplayAll className="" signalData={signalData} />}
+            </div>
+          </div>
         </div>
       </div>
     </DisplayContextProvider>
