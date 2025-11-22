@@ -24,6 +24,76 @@ export function binaryStringToInt(binaryString: string): number {
   return parseInt(binaryString.slice(1), 2);
 }
 
+// ----- Simple ROB helpers -----
+
+
+export interface SimpleROBEntry {
+  index: number;
+  rawBits: string;
+  valid: string;     // '0' | '1' | 'x'
+  completed: string; // '0' | '1' | 'x'
+  exception: string; // '0' | '1' | 'x'
+}
+
+// strip leading 'b' and whitespace from VCD values
+export const cleanBinary = (raw: string): string => {
+  if (!raw) return "";
+  const s = raw.trim();
+  if (!s) return "";
+  return s[0] === "b" ? s.slice(1) : s;
+};
+
+/**
+ * Very lightweight ROB parser that just:
+ *  - slices dbg_buf into equal chunks per entry
+ *  - attaches per-entry status bits (valid/completed/exception)
+ *  - leaves the raw bits opaque (no struct decoding)
+ */
+export const parseSimpleROBData = (
+  dbgBufRaw: string,
+  entryValidRaw: string,
+  completedBitsRaw: string,
+  exceptionBitsRaw: string
+): SimpleROBEntry[] => {
+  const dbgBuf = cleanBinary(dbgBufRaw);
+  const entryValid = cleanBinary(entryValidRaw);
+  const completedBits = cleanBinary(completedBitsRaw);
+  const exceptionBits = cleanBinary(exceptionBitsRaw);
+
+  // infer number of entries from status vectors (whichever is non-zero)
+  const numEntries =
+    entryValid.length || completedBits.length || exceptionBits.length || 0;
+
+  if (numEntries === 0 || dbgBuf.length === 0) {
+    return [];
+  }
+
+  const entryWidth = Math.floor(dbgBuf.length / numEntries);
+  if (entryWidth <= 0) return [];
+
+  const entries: SimpleROBEntry[] = [];
+
+  for (let i = 0; i < numEntries; i++) {
+    const start = i * entryWidth;
+    const rawBits = dbgBuf.slice(start, start + entryWidth);
+
+    const v = entryValid[i] ?? "x";
+    const c = completedBits[i] ?? "x";
+    const e = exceptionBits[i] ?? "x";
+
+    entries.push({
+      index: i,
+      rawBits,
+      valid: v,
+      completed: c,
+      exception: e,
+    });
+  }
+
+  return entries;
+};
+
+
 // function to extract values from the signal data
 export const extractSignalValue = (
   signalData: ScopeData,

@@ -104,13 +104,13 @@ export default function DebuggerHeader({
       <div className="flex h-14 items-center justify-between px-4 md:px-6">
         <div className="flex items-center space-x-4">
           <Image
-            src="/bloons.png"
+            src="/image.png"
             alt="btd6 dartling gunner"
             width={40}
             height={40}
             className="rounded-lg"
           />
-          <span className="font-bold text-lg">Chimp Debugger</span>
+          <span className="font-bold text-lg">Coronado Debugger</span>
           <Link
             href="/"
             className="text-sm font-medium text-foreground transition-colors hover:text-primary underline-fade"

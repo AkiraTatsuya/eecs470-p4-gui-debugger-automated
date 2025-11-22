@@ -1,45 +1,82 @@
+// components/DisplayAll.tsx
 import React from "react";
 import { ScopeData } from "@/lib/tstypes";
-import DebuggerOutput from "@/components/DebuggerOutput";
-// import ROBDebugger from "@/components/ROBDebugger";
-// import RSDebugger from "@/components/RSDebugger";
-// import FNAFDebugger from "@/components/FNAFDebugger";
-// import RegfileDebugger from "@/components/RegfileDebugger";
-// import ShadDebuggerHeader from "@/components/ShadDebuggerHeader";
-// import BSDebugger from "@/components/BSDebugger";
-// import FUDebugger from "@/components/FUDebugger";
-// import IBDebugger from "@/components/IBDebugger";
-// import BPredDebugger from "@/components/BPredDebugger";
+
+import ROBDebugger from "@/components/ROBDebugger";
 import SignalDebugger from "@/components/SignalDebugger";
-// import I$Debugger from "@/components/I$Debugger";
-// import MemDebugger from "@/components/MemDebugger";
-// import SQDebugger from "@/components/SQDebugger";
-// import D$Debugger from "@/components/D$Debugger";
+import DebuggerOutput from "@/components/DebuggerOutput";
 
 type DisplayAllProps = {
-  className: string;
-  signalData: any;
+  className?: string;
+  signalData: ScopeData | any;
 };
 
-const DisplayAll: React.FC<DisplayAllProps> = ({ className, signalData }) => {
-  const testbench = signalData?.signals.children.testbench;
-  const cpu = testbench?.children.mustafa;
-  const Front_End = cpu?.children.Front_End;
-  const OoO_Core = cpu?.children.OoO_Core;
+const Maybe = ({ cond, children }: { cond: any; children: React.ReactNode }) =>
+  cond ? <>{children}</> : null;
+
+const DisplayAll: React.FC<DisplayAllProps> = ({
+  className = "",
+  signalData,
+}) => {
+  if (!signalData) {
+    return (
+      <div className={className}>
+        <p className="text-sm text-muted-foreground">
+          No signal data loaded yet.
+        </p>
+      </div>
+    );
+  }
+
+  const testbench = signalData?.signals?.children?.testbench;
+  const verisimpleV = testbench?.children?.verisimpleV;
+  const rb = verisimpleV?.children?.rb as ScopeData | undefined;
 
   return (
-    <>
-      <div className="space-y-4">
-        <div className="flex gap-x-2">
-          </div>
+    <div className={`space-y-8 ${className}`}>
+      {/* ========================== */}
+      {/* ROB SECTION                */}
+      {/* ========================== */}
+      <Maybe cond={rb}>
+        <div className="space-y-3">
+          <h2 className="text-xl font-semibold text-foreground/90">
+            Reorder Buffer (rb)
+          </h2>
+          <ROBDebugger
+            className="border border-border/20 rounded-lg p-3"
+            signalData={rb as ScopeData}
+          />
         </div>
+      </Maybe>
 
-      {/* all signals */}
-      <div className="space-y-4">
-        <SignalDebugger className="" signalData={testbench.children} />
-        <DebuggerOutput className="" signalData={signalData} />
+      {!rb && (
+        <div className="text-sm text-red-400">
+          Could not find <code>testbench.verisimpleV.rb</code> in the signal
+          hierarchy. Use the raw view below to confirm the scope names.
+        </div>
+      )}
+
+      {/* ========================== */}
+      {/* RAW SIGNAL VIEWS           */}
+      {/* ========================== */}
+      <div className="space-y-3">
+        <h2 className="text-xl font-semibold text-foreground/90">
+          Raw Signal View
+        </h2>
+
+        <Maybe cond={testbench}>
+          <SignalDebugger
+            className="border border-border/20 rounded-lg p-2"
+            signalData={testbench}
+          />
+        </Maybe>
+
+        <DebuggerOutput
+          className="border border-border/20 rounded-lg p-2"
+          signalData={signalData}
+        />
       </div>
-    </>
+    </div>
   );
 };
 
